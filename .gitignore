@@ -1,6 +1,6 @@
 .idea/
 
-masterDocument/
+masterDocument/**/*.md
 
 # Dependencies
 node_modules/
