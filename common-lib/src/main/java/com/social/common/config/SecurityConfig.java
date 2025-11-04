@@ -1,4 +1,4 @@
-package com.social.gateway.config;
+package com.social.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
