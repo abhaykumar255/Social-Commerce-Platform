@@ -111,6 +111,42 @@ public class AuthService {
         }
     }
 
+    public void logoutAllDevices(UUID userId) {
+        try {
+            String sessionKey = ACTIVE_SESSION_PREFIX + userId;
+
+            var activeTokens = redisTemplate.opsForSet().members(sessionKey);
+
+            if (activeTokens != null && !activeTokens.isEmpty()) {
+                for (String token : activeTokens) {
+                    // Add each token to blacklist
+                    Date expiration = jwtUtil.extractExpiration(token);
+                    long ttl = expiration.getTime() - System.currentTimeMillis();
+
+                    if (ttl > 0) {
+                        String blacklistKey = BLACKLIST_PREFIX + token;
+                        redisTemplate.opsForValue().set(
+                                blacklistKey,
+                                "blacklisted",
+                                ttl,
+                                TimeUnit.MILLISECONDS
+                        );
+                    }
+                }
+
+                // Remove all active sessions
+                redisTemplate.delete(sessionKey);
+
+                log.info("User {} logged out from all devices. {} tokens invalidated.",
+                        userId, activeTokens.size());
+            }
+        } catch (Exception e) {
+            log.error("Error during logout from all devices: {}", e.getMessage(), e);
+            throw new ValidationException("Failed to logout from all devices. Please try again.");
+        }
+    }
+
+
     public boolean isTokenBlacklisted(String token) {
         String blackListKey = BLACKLIST_PREFIX + token;
         return redisTemplate.hasKey(blackListKey);
