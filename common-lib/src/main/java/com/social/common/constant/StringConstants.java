@@ -10,6 +10,8 @@ public class StringConstants {
     public static final String ROLE_GUEST = "ROLE_GUEST";
     public static final String ROLE_CUSTOMER = "ROLE_CUSTOMER";
 
+    public static final String TOKEN_TYPE_BEARER = "Bearer";
+
     private StringConstants() {
         // Private constructor to prevent instantiation
     }

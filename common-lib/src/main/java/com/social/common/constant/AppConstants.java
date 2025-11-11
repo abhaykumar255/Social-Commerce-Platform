@@ -44,6 +44,13 @@ public class AppConstants {
     public static final long MAX_FILE_SIZE = 10485760L; // 10MB
     public static final String[] ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif"};
 
+    // Time Constants
+    public static final long ONE_MINUTE = 60000L;
+    public static final long ONE_HOUR = 3600000L;
+    public static final long TWELVE_HOURS = 43200000L;
+    public static final long ONE_DAY = 86400000L;
+    public static final long ONE_WEEK = 604800000L;
+
     private AppConstants() {
         // Private constructor to prevent instantiation
     }
