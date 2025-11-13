@@ -1,0 +1,408 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # DATABASES
+  # ============================================================================
+
+  # Single PostgreSQL instance with multiple databases
+#  postgres:
+#    image: postgres:15-alpine
+#    container_name: postgres-dev
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#      POSTGRES_DB: postgres
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    networks:
+#      - social-commerce-network
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+
+  # PostgreSQL for User Service
+  postgres-user:
+    image: postgres:15-alpine
+    container_name: postgres-user-dev
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_user_data:/var/lib/postgresql/data
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d user_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for Product Service
+  postgres-product:
+    image: postgres:15-alpine
+    container_name: postgres-product-dev
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_product_data:/var/lib/postgresql/data
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d product_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for Order Service
+  postgres-order:
+    image: postgres:15-alpine
+    container_name: postgres-order-dev
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d order_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB
+  mongodb:
+    image: mongo:7
+    container_name: mongodb-dev
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: SecurePassword123!
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: redis-dev
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Neo4j
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: neo4j-dev
+    environment:
+      NEO4J_AUTH: neo4j/SecurePassword123!
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "SecurePassword123!", "RETURN 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ============================================================================
+  # SEARCH & ANALYTICS
+  # ============================================================================
+
+  # Elasticsearch for Product Search
+  elasticsearch-product:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.1
+    container_name: elasticsearch-product-dev
+    environment:
+      - node.name=elasticsearch-product
+      - cluster.name=product-search-cluster
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_product_data:/usr/share/elasticsearch/data
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Elasticsearch for Analytics
+  elasticsearch-analytics:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.1
+    container_name: elasticsearch-analytics-dev
+    environment:
+      - node.name=elasticsearch-analytics
+      - cluster.name=analytics-cluster
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9201:9200"
+    volumes:
+      - elasticsearch_analytics_data:/usr/share/elasticsearch/data
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Kibana for Product Search
+  kibana-product:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: kibana-product-dev
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch-product:9200
+      ELASTICSEARCH_URL: http://elasticsearch-product:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch-product:
+        condition: service_healthy
+    networks:
+      - social-commerce-network
+
+  # Kibana for Analytics
+  kibana-analytics:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: kibana-analytics-dev
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch-analytics:9200
+      ELASTICSEARCH_URL: http://elasticsearch-analytics:9200
+    ports:
+      - "5602:5601"
+    depends_on:
+      elasticsearch-analytics:
+        condition: service_healthy
+    networks:
+      - social-commerce-network
+
+  # ============================================================================
+  # MESSAGE QUEUE
+  # ============================================================================
+
+  # Kafka (KRaft mode - no Zookeeper)
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-dev
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui-dev
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - "8080:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - social-commerce-network
+
+  # ============================================================================
+  # MONITORING & TRACING
+  # ============================================================================
+
+  # Zipkin
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin-dev
+    ports:
+      - "9411:9411"
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9411/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-dev
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - social-commerce-network
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-dev
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - social-commerce-network
+
+  # ============================================================================
+  # ELK STACK
+  # ============================================================================
+
+  # Logstash
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: logstash-dev
+    environment:
+      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    depends_on:
+      elasticsearch-analytics:
+        condition: service_healthy
+    networks:
+      - social-commerce-network
+
+  # ============================================================================
+  # ADDITIONAL SERVICES
+  # ============================================================================
+
+  # MinIO (S3-compatible storage)
+  minio:
+    image: minio/minio:latest
+    container_name: minio-dev
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: SecurePassword123!
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Cassandra (if needed for time-series data)
+  cassandra:
+    image: cassandra:4.1
+    container_name: cassandra-dev
+    environment:
+      CASSANDRA_CLUSTER_NAME: SocialCommerceCluster
+      CASSANDRA_DC: datacenter1
+      CASSANDRA_RACK: rack1
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: ["CMD", "cqlsh", "-e", "describe keyspaces"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  social-commerce-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+  neo4j_data:
+  neo4j_logs:
+  elasticsearch_product_data:
+  elasticsearch_analytics_data:
+  kafka_data:
+  prometheus_data:
+  grafana_data:
+  minio_data:
+  cassandra_data:
+  postgres_user_data:
+  postgres_product_data:
+  postgres_order_data:
