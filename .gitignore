@@ -5,6 +5,7 @@
 out/
 
 masterDocument/**/*.md
+masterDocument/
 
 # Dependencies
 node_modules/
