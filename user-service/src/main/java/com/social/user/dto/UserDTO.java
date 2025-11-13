@@ -2,10 +2,7 @@ package com.social.user.dto;
 
 import com.social.user.model.Role;
 import com.social.user.model.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -14,6 +11,7 @@ import java.util.stream.Collectors;
 
 @Data
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDTO {
