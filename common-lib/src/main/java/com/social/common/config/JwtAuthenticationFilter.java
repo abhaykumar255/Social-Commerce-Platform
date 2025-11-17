@@ -1,4 +1,4 @@
-package com.social.product.config;
+package com.social.common.config;
 
 import com.social.common.security.JwtUtil;
 import jakarta.servlet.FilterChain;

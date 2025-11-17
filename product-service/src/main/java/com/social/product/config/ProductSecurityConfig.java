@@ -1,5 +1,6 @@
 package com.social.product.config;
 
+import com.social.common.config.JwtAuthenticationFilter;
 import com.social.common.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

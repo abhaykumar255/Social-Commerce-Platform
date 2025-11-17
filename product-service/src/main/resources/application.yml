@@ -1,6 +1,12 @@
 server:
   port: 9002
 
+# For Redis Common Lib Configuration
+app:
+  redis:
+    cache:
+      enabled: true
+
 spring:
   application:
     name: product-service
