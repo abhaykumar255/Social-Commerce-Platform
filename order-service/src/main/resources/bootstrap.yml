@@ -1,8 +1,9 @@
 spring:
   application:
-    name: commerce-products-service
+    name: commerce-orders-service
   cloud:
     config:
       uri: http://localhost:8888
       fail-fast: false
       enabled: false
+

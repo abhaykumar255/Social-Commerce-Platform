@@ -1,0 +1,10 @@
+# Configuration for commerce-social-service
+server:
+  port: ${SERVER_PORT:9005}
+
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/commerce_social_db}
+      database: commerce_social_db
+

@@ -3,11 +3,11 @@ server:
 
 spring:
   application:
-    name: service-discovery
+    name: commerce-service-discovery
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: ${EUREKA_HOSTNAME:localhost}
     prefer-ip-address: false
 
   client:

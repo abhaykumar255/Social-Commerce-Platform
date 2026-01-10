@@ -5,62 +5,82 @@ services:
   # DATABASES
   # ============================================================================
 
-  # PostgreSQL for User Service
-  postgres-user:
+  # PostgreSQL for Users Service
+  postgres-users:
     image: postgres:15-alpine
-    container_name: postgres-user-dev
+    container_name: postgres-users-dev
     environment:
-      POSTGRES_DB: user_db
+      POSTGRES_DB: commerce_users_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
-      - postgres_user_data:/var/lib/postgresql/data
+      - postgres_users_data:/var/lib/postgresql/data
     networks:
       - social-commerce-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d user_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d commerce_users_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # PostgreSQL for Product Service
-  postgres-product:
+  # PostgreSQL for Products Service
+  postgres-products:
     image: postgres:15-alpine
-    container_name: postgres-product-dev
+    container_name: postgres-products-dev
     environment:
-      POSTGRES_DB: product_db
+      POSTGRES_DB: commerce_products_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
     volumes:
-      - postgres_product_data:/var/lib/postgresql/data
+      - postgres_products_data:/var/lib/postgresql/data
     networks:
       - social-commerce-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d product_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d commerce_products_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # PostgreSQL for Order Service
-  postgres-order:
+  # PostgreSQL for Orders Service
+  postgres-orders:
     image: postgres:15-alpine
-    container_name: postgres-order-dev
+    container_name: postgres-orders-dev
     environment:
-      POSTGRES_DB: order_db
+      POSTGRES_DB: commerce_orders_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5434:5432"
     volumes:
-      - postgres_order_data:/var/lib/postgresql/data
+      - postgres_orders_data:/var/lib/postgresql/data
     networks:
       - social-commerce-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d order_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d commerce_orders_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for Payments Service
+  postgres-payments:
+    image: postgres:15-alpine
+    container_name: postgres-payments-dev
+    environment:
+      POSTGRES_DB: commerce_payments_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_payments_data:/var/lib/postgresql/data
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d commerce_payments_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -214,7 +234,7 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
@@ -330,25 +350,25 @@ services:
   # ============================================================================
 
   # MinIO (S3-compatible storage)
-  minio:
-    image: minio/minio:latest
-    container_name: minio-dev
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: SecurePassword123!
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001"
-    networks:
-      - social-commerce-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
+#  minio:
+#    image: minio/minio:latest
+#    container_name: minio-dev
+#    environment:
+#      MINIO_ROOT_USER: admin
+#      MINIO_ROOT_PASSWORD: SecurePassword123!
+#    ports:
+#      - "9000:9000"
+#      - "9001:9001"
+#    volumes:
+#      - minio_data:/data
+#    command: server /data --console-address ":9001"
+#    networks:
+#      - social-commerce-network
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+#      interval: 30s
+#      timeout: 20s
+#      retries: 3
 
   # Cassandra (if needed for time-series data)
   cassandra:
@@ -370,6 +390,150 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+      
+  # ============================================================================
+  # SPRING BOOT SERVICES (Uncomment to run in Docker)
+  # ============================================================================
+
+  # Commerce Service Discovery (Eureka)
+  commerce-service-discovery:
+    build:
+      context: ../service-discovery
+      dockerfile: Dockerfile
+    container_name: commerce-service-discovery-dev
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8761:8761"
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Commerce Config Server
+  commerce-config-server:
+    build:
+      context: ../config-server
+      dockerfile: Dockerfile
+    container_name: commerce-config-server-dev
+    environment:
+#      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_SERVER_URL: http://commerce-service-discovery:8761/eureka/
+    ports:
+      - "8888:8888"
+    depends_on:
+      commerce-service-discovery:
+        condition: service_healthy
+    networks:
+      - social-commerce-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8888/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Commerce Users Service
+  commerce-users-service:
+    build:
+      context: ../user-service
+      dockerfile: Dockerfile
+    container_name: commerce-users-service-dev
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-users:5432/commerce_users_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_SERVER_URL: http://commerce-service-discovery:8761/eureka/
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "9001:9001"
+    depends_on:
+      postgres-users:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      commerce-service-discovery:
+        condition: service_healthy
+    networks:
+      - social-commerce-network
+
+  # Commerce Products Service
+  commerce-products-service:
+    build:
+      context: ../product-service
+      dockerfile: Dockerfile
+    container_name: commerce-products-service-dev
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-products:5432/commerce_products_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_SERVER_URL: http://commerce-service-discovery:8761/eureka/
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ELASTICSEARCH_URIS: http://elasticsearch-product:9200
+    ports:
+      - "9002:9002"
+    depends_on:
+      postgres-products:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      commerce-service-discovery:
+        condition: service_healthy
+    networks:
+      - social-commerce-network
+
+  # Commerce Orders Service
+  commerce-orders-service:
+    build:
+      context: ../order-service
+      dockerfile: Dockerfile
+    container_name: commerce-orders-service-dev
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-orders:5432/commerce_orders_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_SERVER_URL: http://commerce-service-discovery:8761/eureka/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "9003:9003"
+    depends_on:
+      postgres-orders:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      commerce-service-discovery:
+        condition: service_healthy
+    networks:
+      - social-commerce-network
+
+  # Commerce API Gateway
+  commerce-api-gateway:
+    build:
+      context: ../api-gateway
+      dockerfile: Dockerfile
+    container_name: commerce-api-gateway-dev
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_SERVER_URL: http://commerce-service-discovery:8761/eureka/
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CONFIG_SERVER_URL: http://commerce-config-server:8888
+    ports:
+      - "9000:9000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      commerce-service-discovery:
+        condition: service_healthy
+    networks:
+      - social-commerce-network
 
 networks:
   social-commerce-network:
@@ -388,6 +552,7 @@ volumes:
   grafana_data:
   minio_data:
   cassandra_data:
-  postgres_user_data:
-  postgres_product_data:
-  postgres_order_data:
+  postgres_users_data:
+  postgres_products_data:
+  postgres_orders_data:
+  postgres_payments_data:

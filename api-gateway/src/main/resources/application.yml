@@ -1,13 +1,13 @@
 server:
-  port: 9000
+  port: ${SERVER_PORT:9000}
 
 spring:
   application:
-    name: api-gateway
+    name: commerce-api-gateway
   main:
     web-application-type: reactive
   config:
-    import: "optional:configserver:http://localhost:8888"
+    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -50,14 +50,14 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       timeout: 2000ms
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
     register-with-eureka: true
     fetch-registry: true
   instance:
@@ -69,7 +69,7 @@ eureka:
 resilience4j:
   circuitbreaker:
     instances:
-      userServiceCircuitBreaker:
+      usersServiceCircuitBreaker:
         register-health-indicator: true
         sliding-window-size: 10
         minimum-number-of-calls: 5
@@ -77,7 +77,7 @@ resilience4j:
         automatic-transition-from-open-to-half-open-enabled: true
         wait-duration-in-open-state: 10s
         failure-rate-threshold: 50
-      productServiceCircuitBreaker:
+      productsServiceCircuitBreaker:
         register-health-indicator: true
         sliding-window-size: 10
         minimum-number-of-calls: 5
@@ -85,7 +85,31 @@ resilience4j:
         automatic-transition-from-open-to-half-open-enabled: true
         wait-duration-in-open-state: 10s
         failure-rate-threshold: 50
-      orderServiceCircuitBreaker:
+      ordersServiceCircuitBreaker:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+      paymentsServiceCircuitBreaker:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+      socialServiceCircuitBreaker:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+      notificationsServiceCircuitBreaker:
         register-health-indicator: true
         sliding-window-size: 10
         minimum-number-of-calls: 5
@@ -96,8 +120,8 @@ resilience4j:
 
 # JWT Configuration
 jwt:
-  secret: asdfladf98255f89aysf255yasiudfha9s87df255syudhfa98sdfyaisuhdfa98sfy
-  expiration: 86400000
+  secret: ${JWT_SECRET:asdfladf98255f89aysf255yasiudfha9s87df255syudhfa98sdfyaisuhdfa98sfy}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 management:
   endpoints:

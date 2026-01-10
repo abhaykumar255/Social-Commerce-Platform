@@ -1,0 +1,26 @@
+# Docker Profile - Uses Docker container hostnames
+# Run with: SPRING_PROFILES_ACTIVE=docker
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-users:5432/commerce_users_db
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://commerce-service-discovery:8761/eureka/
+
+logging:
+  level:
+    com.social.user: INFO

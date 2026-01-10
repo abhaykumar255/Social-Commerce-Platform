@@ -1,0 +1,15 @@
+# Configuration for commerce-notifications-service
+server:
+  port: ${SERVER_PORT:9006}
+
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/commerce_notifications_db}
+      database: commerce_notifications_db
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: commerce-notifications-service
+

@@ -1,28 +1,28 @@
 server:
-  port: 9003
+  port: ${SERVER_PORT:9003}
 
 spring:
   application:
-    name: order-service
+    name: commerce-orders-service
   config:
-    import: "optional:configserver:http://localhost:8888"
+    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
 
   datasource:
-    url: jdbc:postgresql://localhost:5434/order_db
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/commerce_orders_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:10}
+      minimum-idle: ${HIKARI_MIN_IDLE:5}
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    show-sql: true
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -33,14 +33,14 @@ spring:
     defer-datasource-initialization: true
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.add.type.headers: false
     consumer:
-      group-id: order-service-group
+      group-id: commerce-orders-service-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
@@ -55,15 +55,15 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
     register-with-eureka: true
     fetch-registry: true
-    registry-fetch-interval-seconds: 30  # Default is 30
+    registry-fetch-interval-seconds: 30
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
-    lease-renewal-interval-in-seconds: 30  # Increase from 10 to 30
-    lease-expiration-duration-in-seconds: 90  # Increase accordingly
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
 
 management:
   endpoints:
@@ -115,13 +115,9 @@ logging:
     com.social.order: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: INFO
-    org.springframework.kafka: INFO
-    org.springframework.cloud.openfeign: DEBUG
     org.springframework.cloud.netflix.eureka: WARN
     com.netflix.discovery: WARN
-    org.springframework.web.client.RestTemplate: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-
   file:
-    name: logs/order-service/order-service.log
+    name: logs/commerce-orders-service/commerce-orders-service.log

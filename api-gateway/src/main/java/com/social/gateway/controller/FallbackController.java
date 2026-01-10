@@ -11,28 +11,28 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/fallback")
 public class FallbackController {
 
-    @GetMapping("/user-service")
-    public ResponseEntity<ApiResponse<String>> userServiceFallback() {
+    @GetMapping("/users-service")
+    public ResponseEntity<ApiResponse<String>> usersServiceFallback() {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ApiResponse.error("User service is temporarily unavailable. Please try again later."));
+                .body(ApiResponse.error("Users service is temporarily unavailable. Please try again later."));
     }
 
-    @GetMapping("/product-service")
-    public ResponseEntity<ApiResponse<String>> productServiceFallback() {
+    @GetMapping("/products-service")
+    public ResponseEntity<ApiResponse<String>> productsServiceFallback() {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ApiResponse.error("Product service is temporarily unavailable. Please try again later."));
+                .body(ApiResponse.error("Products service is temporarily unavailable. Please try again later."));
     }
 
-    @GetMapping("/order-service")
-    public ResponseEntity<ApiResponse<String>> orderServiceFallback() {
+    @GetMapping("/orders-service")
+    public ResponseEntity<ApiResponse<String>> ordersServiceFallback() {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ApiResponse.error("Order service is temporarily unavailable. Please try again later."));
+                .body(ApiResponse.error("Orders service is temporarily unavailable. Please try again later."));
     }
 
-    @GetMapping("/payment-service")
-    public ResponseEntity<ApiResponse<String>> paymentServiceFallback() {
+    @GetMapping("/payments-service")
+    public ResponseEntity<ApiResponse<String>> paymentsServiceFallback() {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ApiResponse.error("Payment service is temporarily unavailable. Please try again later."));
+                .body(ApiResponse.error("Payments service is temporarily unavailable. Please try again later."));
     }
 
     @GetMapping("/social-service")
@@ -41,9 +41,9 @@ public class FallbackController {
                 .body(ApiResponse.error("Social service is temporarily unavailable. Please try again later."));
     }
 
-    @GetMapping("/notification-service")
-    public ResponseEntity<ApiResponse<String>> notificationServiceFallback() {
+    @GetMapping("/notifications-service")
+    public ResponseEntity<ApiResponse<String>> notificationsServiceFallback() {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ApiResponse.error("Notification service is temporarily unavailable. Please try again later."));
+                .body(ApiResponse.error("Notifications service is temporarily unavailable. Please try again later."));
     }
 }
