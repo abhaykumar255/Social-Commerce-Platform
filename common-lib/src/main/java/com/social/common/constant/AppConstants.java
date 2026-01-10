@@ -35,6 +35,7 @@ public class AppConstants {
     public static final String TOPIC_ORDER_EVENTS = "order.events";
     public static final String TOPIC_PAYMENT_EVENTS = "payment.events";
     public static final String TOPIC_NOTIFICATION_EVENTS = "notification.events";
+    public static final String TOPIC_ORDER_CREATED = "order.created";
 
     // Rate Limiting
     public static final int RATE_LIMIT_PER_MINUTE = 60;

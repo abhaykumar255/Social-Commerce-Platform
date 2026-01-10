@@ -1,5 +1,5 @@
 server:
-  port: 9001
+  port: ${SERVER_PORT:9001}
 
 # For Redis Common Lib Configuration
 app:
@@ -11,25 +11,26 @@ app:
 
 spring:
   application:
-    name: user-service
+    name: commerce-users-service
   config:
-    import: "optional:configserver:http://localhost:8888"
+    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
 
+  # Default datasource - uses environment variables with fallback to local profile values
   datasource:
-    url: jdbc:postgresql://localhost:5432/user_db
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/commerce_users_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:10}
+      minimum-idle: ${HIKARI_MIN_IDLE:5}
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: ${JPA_DDL_AUTO:update}
     show-sql: false
     properties:
       hibernate:
@@ -40,9 +41,10 @@ spring:
         order_inserts: true
         order_updates: true
     defer-datasource-initialization: true
+
   sql:
     init:
-      mode: always
+      mode: ${SQL_INIT_MODE:never}
 
   cache:
     type: redis
@@ -51,8 +53,8 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       timeout: 2000ms
       lettuce:
         pool:
@@ -63,18 +65,18 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
     register-with-eureka: true
     fetch-registry: true
-    registry-fetch-interval-seconds: 30  # Default is 30
+    registry-fetch-interval-seconds: 30
   instance:
     prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 30  # Increase from 10 to 30
-    lease-expiration-duration-in-seconds: 90  # Increase accordingly
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
 
 jwt:
-  secret: asdfladf98255f89aysf255yasiudfha9s87df255syudhfa98sdfyaisuhdfa98sfy
-  expiration: 86400000
+  secret: ${JWT_SECRET:asdfladf98255f89aysf255yasiudfha9s87df255syudhfa98sdfyaisuhdfa98sfy}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 management:
   endpoints:
@@ -100,18 +102,14 @@ logging:
   level:
     root: INFO
     com.social.user: DEBUG
-#    com.social.user: INFO
     org.springframework.web: INFO
     org.hibernate.SQL: INFO
     org.springframework.cloud.netflix.eureka: WARN
     com.netflix.discovery: WARN
     org.springframework.web.client.RestTemplate: WARN
-#    org.springframework.cloud.netflix.eureka: ERROR
-#    com.netflix.discovery: ERROR
-#    org.springframework.web.client.RestTemplate: ERROR
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
-    name: logs/user-service/user-service.log
+    name: logs/commerce-users-service/commerce-users-service.log
 
 

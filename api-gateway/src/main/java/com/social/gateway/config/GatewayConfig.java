@@ -11,52 +11,52 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                // User Service Routes
-                .route("user-service", r -> r
+                // Users Service Routes
+                .route("commerce-users-service", r -> r
                         .path("/api/v1/users/**", "/api/v1/auth/**")
                         .filters(f -> f
                                 .stripPrefix(0)
                                 .addRequestHeader("X-Gateway", "API-Gateway")
                                 .circuitBreaker(config -> config
-                                        .setName("userServiceCircuitBreaker")
-                                        .setFallbackUri("forward:/fallback/user-service")))
-                        .uri("lb://user-service"))
+                                        .setName("usersServiceCircuitBreaker")
+                                        .setFallbackUri("forward:/fallback/users-service")))
+                        .uri("lb://commerce-users-service"))
 
-                // Product Service Routes
-                .route("product-service", r -> r
+                // Products Service Routes
+                .route("commerce-products-service", r -> r
                         .path("/api/v1/products/**", "/api/v1/categories/**")
                         .filters(f -> f
                                 .stripPrefix(0)
                                 .addRequestHeader("X-Gateway", "API-Gateway")
                                 .circuitBreaker(config -> config
-                                        .setName("productServiceCircuitBreaker")
-                                        .setFallbackUri("forward:/fallback/product-service")))
-                        .uri("lb://product-service"))
+                                        .setName("productsServiceCircuitBreaker")
+                                        .setFallbackUri("forward:/fallback/products-service")))
+                        .uri("lb://commerce-products-service"))
 
-                // Order Service Routes
-                .route("order-service", r -> r
+                // Orders Service Routes
+                .route("commerce-orders-service", r -> r
                         .path("/api/v1/orders/**", "/api/v1/cart/**")
                         .filters(f -> f
                                 .stripPrefix(0)
                                 .addRequestHeader("X-Gateway", "API-Gateway")
                                 .circuitBreaker(config -> config
-                                        .setName("orderServiceCircuitBreaker")
-                                        .setFallbackUri("forward:/fallback/order-service")))
-                        .uri("lb://order-service"))
+                                        .setName("ordersServiceCircuitBreaker")
+                                        .setFallbackUri("forward:/fallback/orders-service")))
+                        .uri("lb://commerce-orders-service"))
 
-                // Payment Service Routes
-                .route("payment-service", r -> r
+                // Payments Service Routes
+                .route("commerce-payments-service", r -> r
                         .path("/api/v1/payments/**")
                         .filters(f -> f
                                 .stripPrefix(0)
                                 .addRequestHeader("X-Gateway", "API-Gateway")
                                 .circuitBreaker(config -> config
-                                        .setName("paymentServiceCircuitBreaker")
-                                        .setFallbackUri("forward:/fallback/payment-service")))
-                        .uri("lb://payment-service"))
+                                        .setName("paymentsServiceCircuitBreaker")
+                                        .setFallbackUri("forward:/fallback/payments-service")))
+                        .uri("lb://commerce-payments-service"))
 
                 // Social Service Routes
-                .route("social-service", r -> r
+                .route("commerce-social-service", r -> r
                         .path("/api/v1/posts/**", "/api/v1/comments/**", "/api/v1/follows/**")
                         .filters(f -> f
                                 .stripPrefix(0)
@@ -64,18 +64,18 @@ public class GatewayConfig {
                                 .circuitBreaker(config -> config
                                         .setName("socialServiceCircuitBreaker")
                                         .setFallbackUri("forward:/fallback/social-service")))
-                        .uri("lb://social-service"))
+                        .uri("lb://commerce-social-service"))
 
-                // Notification Service Routes
-                .route("notification-service", r -> r
+                // Notifications Service Routes
+                .route("commerce-notifications-service", r -> r
                         .path("/api/v1/notifications/**")
                         .filters(f -> f
                                 .stripPrefix(0)
                                 .addRequestHeader("X-Gateway", "API-Gateway")
                                 .circuitBreaker(config -> config
-                                        .setName("notificationServiceCircuitBreaker")
-                                        .setFallbackUri("forward:/fallback/notification-service")))
-                        .uri("lb://notification-service"))
+                                        .setName("notificationsServiceCircuitBreaker")
+                                        .setFallbackUri("forward:/fallback/notifications-service")))
+                        .uri("lb://commerce-notifications-service"))
 
                 .build();
     }
